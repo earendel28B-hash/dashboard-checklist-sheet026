@@ -421,6 +421,30 @@ function parseInspectionData(raw){
   }
   return typeof raw==='object'?{...raw}:{};
 }
+function normalizeDateOnly(value){
+  const text=String(value??'').trim();
+  if(!text)return '';
+  const iso=text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if(iso)return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const slash=text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(slash){
+    let a=Number(slash[1]),b=Number(slash[2]),y=Number(slash[3]);
+    if(y>2400)y-=543;
+    const day=a>12?a:b>12?b:a;
+    const month=a>12?b:a;
+    return `${y}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+  }
+  const d=new Date(text);
+  if(!Number.isNaN(d.getTime())){
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+  return text;
+}
+function formatInspectionDate(value){
+  const iso=normalizeDateOnly(value);
+  const m=iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m?`${m[3]}/${m[2]}/${m[1]}`:iso;
+}
 function normalizeRecord(record){
   if(!record)return null;
   const data=parseInspectionData(record.inspection_data??record.data);
@@ -431,7 +455,7 @@ function normalizeRecord(record){
     ...data,
     checklist_type:checklistType,
     checklist_name:checklistName,
-    inspection_date:record.inspection_date??data.inspection_date??'',
+    inspection_date:normalizeDateOnly(record.inspection_date??data.inspection_date??''),
     operator_name:record.operator_name??data.operator_name??'',
     employee_id:record.employee_id??data.employee_id??'',
     machine_location:record.machine_location??data.machine_location??'',
@@ -649,7 +673,7 @@ function renderHistory(){
   const records=getRecords().filter(r=>{const d=r.data||{};return [d.checklist_name,d.inspection_date,d.operator_name,d.machine_location,d.smu,d.inspection_type].join(' ').toLowerCase().includes(q)});
   recordCount.textContent=`${getRecords().length} รายการ`;
   historyBody.innerHTML=records.length?records.map(r=>{const d=r.data||{};return `<tr>
-    <td>${escapeHtml(d.checklist_name||'Drive Station')}</td><td>${escapeHtml(d.inspection_date||'')}</td><td>${escapeHtml(d.operator_name||'')}</td><td>${escapeHtml(d.machine_location||'')}</td>
+    <td>${escapeHtml(d.checklist_name||'Drive Station')}</td><td>${escapeHtml(formatInspectionDate(d.inspection_date))}</td><td>${escapeHtml(d.operator_name||'')}</td><td>${escapeHtml(d.machine_location||'')}</td>
     <td>${escapeHtml(d.smu||'')}</td><td>${escapeHtml(d.inspection_type||'')}</td><td style="text-align:center;font-weight:700;color:${r.ng_count?'var(--ng)':'var(--ok)'}">${r.ng_count||0}</td>
     <td>${escapeHtml(formatDateTime(r.updated_at||r.created_at))}</td>
     <td><div class="history-actions"><button type="button" onclick="editRecord('${r.id}')">เปิด/แก้ไข</button><button type="button" onclick="duplicateRecord('${r.id}')">คัดลอก</button><button type="button" class="delete" onclick="deleteRecord('${r.id}')">ลบ</button></div></td></tr>`}).join(''):'<tr><td colspan="9" class="empty-history">ยังไม่มีข้อมูลที่บันทึก</td></tr>';
