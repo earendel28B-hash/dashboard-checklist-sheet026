@@ -11,7 +11,7 @@
     let w=await res.text();
     const marker='    document.open();document.write(h);document.close();';
     if(!w.includes(marker))throw new Error('ไม่พบจุดติดตั้ง Gearbox Vibration patch');
-    const hook="    h=h.replace('</body>','<script src=\"./gearbox_vibration_dual.js?v=20260816p\"><\\/script><script src=\"./vibration_data_sync.js?v=20260816p\"><\\/script><script src=\"./history_latest_only.js?v=20260816p\"><\\/script><script src=\"./history_vibration_restore.js?v=20260816q\"><\\/script><script src=\"./temperature_trend_enhanced.js?v=20260816p\"><\\/script><script src=\"./vibration_trend_enhanced.js?v=20260816p\"><\\/script></body>');\n";
+    const hook="    h=h.replace('</body>','<script src=\"./gearbox_vibration_dual.js?v=20260816p\"><\\/script><script src=\"./vibration_data_sync.js?v=20260816p\"><\\/script><script src=\"./history_latest_only.js?v=20260816p\"><\\/script><script src=\"./history_vibration_restore.js?v=20260816q\"><\\/script><script src=\"./temperature_trend_enhanced.js?v=20260816p\"><\\/script><script src=\"./vibration_trend_enhanced.js?v=20260816q\"><\\/script></body>');\n";
     w=w.replace(marker,hook+marker);
     document.open();document.write(w);document.close();
   }catch(err){
