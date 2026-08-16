@@ -1,6 +1,8 @@
 (()=>{
   const PULLEY=[2,3,7,8,12,13,17,18];
   const GEARBOX=[22,28,34,40,46];
+  const FORM_FIELD_RE=/^(?:actual|standard|remark|visual|sound|vibration|vibration_input|vibration_output)_\d+$/;
+  const RESTORE_DELAYS=[0,50,150,350,800];
 
   const byName=name=>document.querySelector(`[name="${name}"]`);
   function rowFor(n){return document.querySelector(`tr.item-row[data-no="${n}"]`)||[...document.querySelectorAll('tr.item-row')].find(r=>Number(r.cells?.[0]?.textContent||0)===Number(n))}
@@ -35,9 +37,33 @@
   }
 
   function setValue(el,value){if(!el)return;el.value=value==null?'':String(value)}
+  function setFormValue(name,value){
+    if(!FORM_FIELD_RE.test(name))return false;
+    const form=document.getElementById('checklistForm')||document.forms.checklistForm||document.querySelector('form');
+    const els=form?.elements?.[name]||byName(name);
+    if(!els)return false;
+    const text=value==null?'':String(value);
+    if(els instanceof RadioNodeList){
+      [...els].forEach(el=>{el.checked=el.value===text});
+      return true;
+    }
+    if(els.length&&!els.tagName&&typeof els!=='string'){
+      [...els].forEach(el=>{
+        if(el.type==='radio'||el.type==='checkbox')el.checked=el.value===text;
+        else el.value=text;
+      });
+      return true;
+    }
+    els.value=text;
+    return true;
+  }
+  function restoreSavedFields(data){
+    Object.entries(data||{}).forEach(([name,value])=>setFormValue(name,value));
+  }
 
   function restore(data){
     if(!data||typeof data!=='object')return;
+    restoreSavedFields(data);
     PULLEY.forEach(n=>{
       const el=ensurePulley(n);
       if(Object.prototype.hasOwnProperty.call(data,`vibration_${n}`))setValue(el,data[`vibration_${n}`]);
@@ -69,13 +95,25 @@
         if(rec&&typeof normalizeRecord==='function')rec=normalizeRecord(rec);
         const data=rec?.data||rec?.inspection_data||null;
         if(data){
-          // Let the original edit flow finish its reset/render, then restore remote vibration values.
-          [0,50,150,350,800].forEach(ms=>setTimeout(()=>restore(data),ms));
+          // Let the original edit flow finish its reset/render, then restore saved numeric values.
+          RESTORE_DELAYS.forEach(ms=>setTimeout(()=>restore(data),ms));
           return;
         }
       }
     }catch(err){console.warn('history vibration remote restore',err)}
-    if(local?.data)[50,150,350,800].forEach(ms=>setTimeout(()=>restore(local.data),ms));
+    if(local?.data)RESTORE_DELAYS.slice(1).forEach(ms=>setTimeout(()=>restore(local.data),ms));
+  }
+
+  const originalApplyData=window.applyData;
+  if(typeof originalApplyData==='function'&&!originalApplyData.__historyNumericRestore){
+    const wrappedApplyData=function(data){
+      const result=originalApplyData.apply(this,arguments);
+      RESTORE_DELAYS.forEach(ms=>setTimeout(()=>restore(data||{}),ms));
+      return result;
+    };
+    wrappedApplyData.__historyNumericRestore=true;
+    window.applyData=wrappedApplyData;
+    try{applyData=wrappedApplyData}catch(e){}
   }
 
   document.addEventListener('click',e=>{
