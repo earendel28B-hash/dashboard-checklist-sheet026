@@ -6,12 +6,12 @@
 <script>
 (async()=>{
   try{
-    const res=await fetch('./index_numeric_base.html?v=20260816b',{cache:'no-store'});
+    const res=await fetch('./index_numeric_base.html?v=20260816c',{cache:'no-store'});
     if(!res.ok)throw new Error('โหลดไฟล์หลักไม่สำเร็จ');
     let w=await res.text();
     const marker='    document.open();document.write(h);document.close();';
     if(!w.includes(marker))throw new Error('ไม่พบจุดติดตั้ง Gearbox Vibration patch');
-    const hook="    h=h.replace('</body>','<script src=\"./gearbox_vibration_dual.js?v=20260816b\"><\\/script></body>');\n";
+    const hook="    h=h.replace('</body>','<script src=\"./gearbox_vibration_dual.js?v=20260816c\"><\\/script></body>');\n";
     w=w.replace(marker,hook+marker);
     document.open();document.write(w);document.close();
   }catch(err){
