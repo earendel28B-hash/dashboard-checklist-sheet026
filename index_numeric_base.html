@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="th">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Drive Station Daily Checklist</title></head>
+<body>
+<div id="loading" style="font-family:Segoe UI,Tahoma,sans-serif;padding:30px;text-align:center">กำลังโหลด Checklist...</div>
+<script>
+(async()=>{
+  try{
+    const res=await fetch('./index_original.html?v=20260816',{cache:'no-store'});
+    if(!res.ok) throw new Error('โหลดไฟล์ต้นฉบับไม่สำเร็จ');
+    let h=await res.text();
+
+    const css='.text-input:focus{outline:none;border-color:#559bc4;background:#fff;box-shadow:0 0 0 2px #559bc422}';
+    h=h.replace(css,css+'\n.vibration-input{text-align:center;font-variant-numeric:tabular-nums;background:#fff;border-color:#d7e0e6}\n.history-table{min-width:720px!important;table-layout:auto!important}.history-table th,.history-table td{padding:6px 7px!important;font-size:12px!important}.history-table th:nth-child(8),.history-table td:nth-child(8){display:none}.history-table th:nth-child(1),.history-table td:nth-child(1){max-width:135px}.history-table th:nth-child(3),.history-table td:nth-child(3){max-width:155px}.history-table th:nth-child(4),.history-table td:nth-child(4){white-space:nowrap}.history-actions button{padding:5px 7px!important;font-size:11px}.history-panel .table-wrap{max-height:520px;overflow:auto!important}.history-table thead th{position:sticky;top:0;z-index:2}');
+
+    h=h.replace('<div class="kpi-note">Visual + Sound + Vibration</div>','<div class="kpi-note">Visual + Sound</div>');
+
+    h=h.replace(
+      '<div class="condition-card"><h3>Trend Vibration</h3><div class="condition-filter"><div class="field"><label>จุดตรวจ Vibration</label><select id="vibrationPoint" onchange="renderConditionTrends()"></select></div><div class="field"><label>การแสดงผล</label><select id="vibrationDisplayMode" onchange="renderConditionTrends()"><option value="selected">จุดที่เลือก</option><option value="all">รวมทุกจุดตรวจ</option></select></div></div><div class="condition-summary"><span>ตรวจทั้งหมด: <b id="vibChecked">0</b></span><span>OK: <b id="vibOK">0</b></span><span>NG: <b id="vibNG">0</b></span><span>NG Rate: <b id="vibRate">0%</b></span></div><div class="condition-note">Vibration ปัจจุบันเป็นสถานะ OK/NG จึงแสดงจำนวน NG ตามวันที่</div><div class="chart-wrap"><canvas id="vibrationTrendChart"></canvas></div></div>',
+      '<div class="condition-card"><h3>Trend Vibration (mm/s RMS)</h3><div class="condition-filter"><div class="field"><label>จุดวัด Vibration</label><select id="vibrationPoint" onchange="renderConditionTrends()"></select></div><div class="field"><label>การแสดงผล</label><select id="vibrationDisplayMode" onchange="renderConditionTrends()"><option value="selected">จุดที่เลือก</option><option value="average">ค่าเฉลี่ยทุกจุด</option><option value="maximum">ค่าสูงสุดทุกจุด</option></select></div></div><div class="condition-summary"><span>ล่าสุด: <b id="vibLatest">-</b></span><span>ต่ำสุด: <b id="vibMin">-</b></span><span>สูงสุด: <b id="vibMax">-</b></span><span>จำนวนค่าที่วัด: <b id="vibChecked">0</b></span></div><div class="condition-note">กรอกค่าความเร็วการสั่นสะเทือนเป็นตัวเลข หน่วย mm/s RMS</div><div class="chart-wrap"><canvas id="vibrationTrendChart"></canvas></div></div>'
+    );
+
+    h=h.replace(
+      '<colgroup><col style="width:4%"><col style="width:22%"><col style="width:11%"><col style="width:11%"><col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:28%"></colgroup>',
+      '<colgroup><col style="width:4%"><col style="width:22%"><col style="width:11%"><col style="width:11%"><col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:4%"><col style="width:10%"><col style="width:26%"></colgroup>'
+    );
+    h=h.replace(
+      '<thead><tr><th rowspan="2">No.</th><th rowspan="2">Inspection Item</th><th rowspan="2">Standard</th><th rowspan="2">Actual Value</th><th colspan="2">Visual</th><th colspan="2">Sound</th><th colspan="2">Vibration</th><th rowspan="2">Remark</th></tr><tr><th>OK</th><th>NG</th><th>OK</th><th>NG</th><th>OK</th><th>NG</th></tr></thead>',
+      '<thead><tr><th rowspan="2">No.</th><th rowspan="2">Inspection Item</th><th rowspan="2">Standard</th><th rowspan="2">Actual Value</th><th colspan="2">Visual</th><th colspan="2">Sound</th><th rowspan="2">Vibration<br><span style="font-weight:400">mm/s RMS</span></th><th rowspan="2">Remark</th></tr><tr><th>OK</th><th>NG</th><th>OK</th><th>NG</th></tr></thead>'
+    );
+
+    h=h.replace(
+      '<td class="choice"><input type="radio" name="vibration_${n}" value="OK"></td>\n<td class="choice"><input type="radio" name="vibration_${n}" value="NG"></td>',
+      '<td><input class="text-input vibration-input" type="number" inputmode="decimal" step="0.01" min="0" name="vibration_${n}" placeholder="0.00" aria-label="Vibration item ${n} mm/s RMS"></td>'
+    );
+    h=h.replace('colspan="11">${escapeHtml(last||\'General\')}','colspan="10">${escapeHtml(last||\'General\')}');
+
+    h=h.replace("function countNG(data){return Object.entries(data).filter(([k,v])=>/^(visual|sound|vibration)_/.test(k)&&v==='NG').length}","function countNG(data){return Object.entries(data).filter(([k,v])=>/^(visual|sound)_/.test(k)&&v==='NG').length}");
+    h=h.replace('ng_count:Number.isFinite(ng)?ng:countNG(merged),','ng_count:countNG(merged),');
+    h=h.replace("function recordNGCount(r){\n  if(Number.isFinite(Number(r.ng_count)))return Number(r.ng_count);\n  return countNG(r.data||{});\n}","function recordNGCount(r){return countNG(r.data||{})}");
+    h=h.replace("const hasNg=['visual','sound','vibration'].some(t=>d[`${t}_${n}`]==='NG');","const hasNg=['visual','sound'].some(t=>d[`${t}_${n}`]==='NG');");
+
+    h=h.replace('let visual=0,sound=0,vibration=0;','let visual=0,sound=0;');
+    h=h.replace("    else if(k.startsWith('vibration_'))vibration++;\n",'');
+    h=h.replace("drawDonut(ngTypeChart,['Visual','Sound','Vibration'],[visual,sound,vibration]);","drawDonut(ngTypeChart,['Visual','Sound'],[visual,sound]);");
+
+    h=h.replace(
+      "const records=getRecords().filter(r=>{const d=r.data||{};return [d.checklist_name,d.inspection_date,d.operator_name,d.machine_location,d.smu,d.inspection_type].join(' ').toLowerCase().includes(q)});",
+      "const records=getRecords().filter(r=>{const d=r.data||{};return [d.checklist_name,d.inspection_date,d.operator_name,d.machine_location,d.smu,d.inspection_type].join(' ').toLowerCase().includes(q)}).sort((a,b)=>{const ad=a.data?.inspection_date||'',bd=b.data?.inspection_date||'';if(ad!==bd)return bd.localeCompare(ad);return String(b.updated_at||b.created_at||'').localeCompare(String(a.updated_at||a.created_at||''))});"
+    );
+
+    const newTrend=`function renderConditionTrends(){
+  const records=filteredDashboardRecords().slice().sort((a,b)=>(a.data?.inspection_date||'').localeCompare(b.data?.inspection_date||''));
+  refreshConditionPointFilters(records);
+  const mode=tempDisplayMode.value,sel=tempPoint.value,by={};
+  records.forEach(r=>{const d=r.data||{},date=d.inspection_date||'';if(!date)return;const t=getTemplateForRecord(r);let vals=[];if(mode==='selected'&&sel){const n=Number(sel.split('|||')[0]),v=parseNumericValue(d[\`actual_\${n}\`]);if(v!=null)vals=[v]}else vals=getTemperatureItems(t).map(i=>parseNumericValue(d[\`actual_\${i.no}\`])).filter(v=>v!=null);if(!vals.length)return;const v=mode==='maximum'?Math.max(...vals):mode==='average'?vals.reduce((a,b)=>a+b,0)/vals.length:vals[0];(by[date]??=[]).push(v)});
+  const dates=Object.keys(by).sort(),vals=dates.map(d=>by[d].reduce((a,b)=>a+b,0)/by[d].length);
+  drawConditionLineChart(temperatureTrendChart,dates,vals,{min:30,max:80,limits:[{value:40,color:'#d98c10'},{value:70,color:'#b42318'}]});
+  tempLatest.textContent=vals.length?\`\${vals.at(-1).toFixed(1)} °C\`:'-';tempMin.textContent=vals.length?\`\${Math.min(...vals).toFixed(1)} °C\`:'-';tempMax.textContent=vals.length?\`\${Math.max(...vals).toFixed(1)} °C\`:'-';tempOver.textContent=vals.filter(v=>v>70).length;
+  const vm=vibrationDisplayMode.value,vs=vibrationPoint.value,vby={},all=[];
+  records.forEach(r=>{const d=r.data||{},date=d.inspection_date||'';if(!date)return;const t=getTemplateForRecord(r);let nums=[];if(vm==='selected'&&vs){const n=Number(vs.split('|||')[0]),v=parseNumericValue(d[\`vibration_\${n}\`]);if(v!=null)nums=[v]}else nums=t.items.map(i=>parseNumericValue(d[\`vibration_\${i.no}\`])).filter(v=>v!=null);if(!nums.length)return;all.push(...nums);const v=vm==='maximum'?Math.max(...nums):nums.reduce((a,b)=>a+b,0)/nums.length;(vby[date]??=[]).push(v)});
+  const vd=Object.keys(vby).sort(),vv=vd.map(d=>vby[d].reduce((a,b)=>a+b,0)/vby[d].length);
+  drawConditionLineChart(vibrationTrendChart,vd,vv,{min:0,decimals:2});
+  vibLatest.textContent=vv.length?\`\${vv.at(-1).toFixed(2)} mm/s\`:'-';vibMin.textContent=all.length?\`\${Math.min(...all).toFixed(2)} mm/s\`:'-';vibMax.textContent=all.length?\`\${Math.max(...all).toFixed(2)} mm/s\`:'-';vibChecked.textContent=all.length;
+}`;
+    h=h.replace(/function renderConditionTrends\(\)\{[\s\S]*?\}\n\nfunction renderDashboard\(\)\{/,newTrend+'\n\nfunction renderDashboard(){');
+
+    document.open();document.write(h);document.close();
+  }catch(err){
+    document.getElementById('loading').innerHTML='<b>เปิดหน้า Checklist ไม่สำเร็จ</b><br>'+String(err.message||err);
+  }
+})();
+</script>
+</body>
+</html>
