@@ -6,9 +6,12 @@
 <script>
 (async()=>{
   try{
-    const res=await fetch('./index_original.html?v=20260816',{cache:'no-store'});
+    const res=await fetch('./index_original.html?v=20261105',{cache:'no-store'});
     if(!res.ok) throw new Error('โหลดไฟล์ต้นฉบับไม่สำเร็จ');
-    let h=await res.text();
+    let h=(await res.text()).replace(/\r\n/g,'\n');
+
+    h=h.replace('</head>','<script src="./checklist-templates.js?v=20261105"><\/script><script src="./checklist-upgrade.js?v=20261105"><\/script></head>');
+    h=h.replace('initChecklistSelector();restoreDraft();renderHistory();','ChecklistUpgrade.install();\ninitChecklistSelector();restoreDraft();renderHistory();');
 
     const css='.text-input:focus{outline:none;border-color:#559bc4;background:#fff;box-shadow:0 0 0 2px #559bc422}';
     h=h.replace(css,css+'\n.vibration-input{text-align:center;font-variant-numeric:tabular-nums;background:#fff;border-color:#d7e0e6}\n.history-table{min-width:720px!important;table-layout:auto!important}.history-table th,.history-table td{padding:6px 7px!important;font-size:12px!important}.history-table th:nth-child(8),.history-table td:nth-child(8){display:none}.history-table th:nth-child(1),.history-table td:nth-child(1){max-width:135px}.history-table th:nth-child(3),.history-table td:nth-child(3){max-width:155px}.history-table th:nth-child(4),.history-table td:nth-child(4){white-space:nowrap}.history-actions button{padding:5px 7px!important;font-size:11px}.history-panel .table-wrap{max-height:520px;overflow:auto!important}.history-table thead th{position:sticky;top:0;z-index:2}');
