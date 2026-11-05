@@ -10,7 +10,7 @@
     if(!res.ok) throw new Error('โหลดไฟล์ต้นฉบับไม่สำเร็จ');
     let h=(await res.text()).replace(/\r\n/g,'\n');
 
-    h=h.replace('</head>','<script src="./checklist-templates.js?v=20261105"><\/script><script src="./checklist-upgrade.js?v=20261105"><\/script></head>');
+    h=h.replace('</head>','<script src="./checklist-templates.js?v=20261105"><\/script><script src="./checklist-upgrade.js?v=20261105-numeric"><\/script></head>');
     h=h.replace('initChecklistSelector();restoreDraft();renderHistory();','ChecklistUpgrade.install();\ninitChecklistSelector();restoreDraft();renderHistory();');
 
     const css='.text-input:focus{outline:none;border-color:#559bc4;background:#fff;box-shadow:0 0 0 2px #559bc422}';

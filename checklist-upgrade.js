@@ -129,8 +129,7 @@
     let numeric='';
     if(isDrive && gearbox.has(n))numeric=`<div class="gearbox-vibration-grid"><label><span>Input</span><input class="text-input vibration-input" type="number" inputmode="decimal" step="0.01" min="0" name="vibration_input_${n}" aria-label="Vibration Input ${esc(item.section)}" placeholder="mm/s"></label><label><span>Output</span><input class="text-input vibration-input" type="number" inputmode="decimal" step="0.01" min="0" name="vibration_output_${n}" aria-label="Vibration Output ${esc(item.section)}" placeholder="mm/s"></label></div>`;
     else if(!isDrive || pulley.has(n))numeric=`<input class="text-input vibration-input" type="number" inputmode="decimal" step="0.01" min="0" name="vibration_${n}" aria-label="Vibration ${esc(item.section+' '+item.item)} mm/s" placeholder="mm/s">`;
-    const oldStatus=/^(OK|NG)$/.test(retained[`vibration_${n}`]||'')?`<small class="legacy-status">สถานะเดิม ${esc(retained[`vibration_${n}`])}</small>`:'';
-    return `<tr class="item-row" data-no="${n}" data-section="${esc(item.section)}"><td class="no">${item.displayNo||n}</td><td class="inspection">${esc(item.item)}</td><td data-label="Standard"><input class="text-input standard" name="standard_${n}" value="${esc(item.standard||'')}" aria-label="Standard ${esc(item.item)}"></td><td data-label="Actual"><input class="text-input actual" name="actual_${n}" aria-label="Actual ${esc(item.item)}" placeholder="ค่าที่วัด"></td><td class="choice" data-label="Visual">${radio('visual','OK','Visual')}</td><td class="choice" data-label="Visual">${radio('visual','NG','Visual')}</td><td class="choice" data-label="Sound">${radio('sound','OK','Sound')}</td><td class="choice" data-label="Sound">${radio('sound','NG','Sound')}</td><td class="vibration-cell" data-label="Vibration"><div class="vibration-status">${radio('vibration_status','OK','Vibration')}${radio('vibration_status','NG','Vibration')}</div>${numeric}${oldStatus}</td><td data-label="หมายเหตุ"><input class="text-input remark" name="remark_${n}" aria-label="หมายเหตุ ${esc(item.item)}" placeholder="รายละเอียด / สิ่งที่พบ"></td></tr>`;
+    return `<tr class="item-row" data-no="${n}" data-section="${esc(item.section)}"><td class="no">${item.displayNo||n}</td><td class="inspection">${esc(item.item)}</td><td data-label="Standard"><input class="text-input standard" name="standard_${n}" value="${esc(item.standard||'')}" aria-label="Standard ${esc(item.item)}"></td><td data-label="Actual"><input class="text-input actual" name="actual_${n}" aria-label="Actual ${esc(item.item)}" placeholder="ค่าที่วัด"></td><td class="choice" data-label="Visual">${radio('visual','OK','Visual')}</td><td class="choice" data-label="Visual">${radio('visual','NG','Visual')}</td><td class="choice" data-label="Sound">${radio('sound','OK','Sound')}</td><td class="choice" data-label="Sound">${radio('sound','NG','Sound')}</td><td class="vibration-cell" data-label="Vibration">${numeric||'<span>—</span>'}</td><td data-label="หมายเหตุ"><input class="text-input remark" name="remark_${n}" aria-label="หมายเหตุ ${esc(item.item)}" placeholder="รายละเอียด / สิ่งที่พบ"></td></tr>`;
   }
   function render(key) {
     const template=CHECKLIST_TEMPLATES[key]||CHECKLIST_TEMPLATES.drive_station;
@@ -163,7 +162,7 @@
     const d={};
     for(const k of ['actual','remark','visual','sound','vibration','vibration_status','vibration_input','vibration_output']){
       const name=`${k}_${n}`, el=form.elements.namedItem(name);
-      d[name]=el?.value || (k==='vibration' && /^(OK|NG)$/.test(retained[name]||'') && !dirty.has(name)?retained[name]:'');
+      d[name]=el?.value || ((k==='vibration'||k==='vibration_status') && /^(OK|NG)$/.test(retained[name]||'') && !dirty.has(name)?retained[name]:'');
     }
     return d;
   }
@@ -397,7 +396,7 @@
     };
     document.querySelectorAll('.kpi-note').forEach(el=>{if(el.textContent==='Visual + Sound')el.textContent='Visual + Sound + Vibration';});
     const vibrationHeader=document.querySelector('#checklistForm > .table-wrap thead tr:first-child th:nth-child(7)');
-    if(vibrationHeader)vibrationHeader.innerHTML='Vibration<br><span style="font-weight:400">OK / NG · mm/s RMS</span>';
+    if(vibrationHeader)vibrationHeader.innerHTML='Vibration<br><span style="font-weight:400">mm/s RMS</span>';
     if(isPreview()){const note=document.createElement('div');note.className='preview-note';note.textContent='โหมดทดลอง: บันทึกเฉพาะเบราว์เซอร์นี้ ไม่ส่งข้อมูลเข้า Google Sheets จริง';document.querySelector('.toolbar').after(note);}
     if(window.checklistStorageError)alert('พบข้อมูลในเครื่องที่อ่านไม่ได้ ระบบยังเก็บต้นฉบับไว้ กรุณาสำรองข้อมูลก่อนแก้ไข');
   }
